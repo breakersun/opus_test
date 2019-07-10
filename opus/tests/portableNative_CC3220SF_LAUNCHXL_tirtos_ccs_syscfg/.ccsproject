@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?ccsproject version="1.0"?>
+<projectOptions>
+	<ccsVersion value="9.0.0"/>
+	<deviceVariant value="Cortex M.CC3220SF"/>
+	<deviceFamily value="TMS470"/>
+	<deviceEndianness value="little"/>
+	<codegenToolVersion value="18.12.1.LTS"/>
+	<isElfFormat value="true"/>
+	<connection value="common/targetdb/connections/TIXDS110_Connection.xml"/>
+	<rts value=""/>
+	<createSlaveProjects value=""/>
+	<ignoreDefaultDeviceSettings value="true"/>
+	<ignoreDefaultCCSSettings value="true"/>
+	<templateProperties value="id=portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg.projectspec.portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg,buildProfile=release,isHybrid=true"/>
+	<origin value="G:\ti\ccs901\simplelink_cc32xx_sdk_3_10_00_04\examples\syscfg_preview\rtos\CC3220SF_LAUNCHXL\demos\portableNative\tirtos\ccs\portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg.projectspec"/>
+	<filesToOpen value=""/>
+</projectOptions>
