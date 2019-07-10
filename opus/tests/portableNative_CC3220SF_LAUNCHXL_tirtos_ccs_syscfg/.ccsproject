@@ -15,4 +15,5 @@
 	<templateProperties value="id=portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg.projectspec.portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg,buildProfile=release,isHybrid=true"/>
 	<origin value="G:\ti\ccs901\simplelink_cc32xx_sdk_3_10_00_04\examples\syscfg_preview\rtos\CC3220SF_LAUNCHXL\demos\portableNative\tirtos\ccs\portableNative_CC3220SF_LAUNCHXL_tirtos_ccs_syscfg.projectspec"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="false"/>
 </projectOptions>

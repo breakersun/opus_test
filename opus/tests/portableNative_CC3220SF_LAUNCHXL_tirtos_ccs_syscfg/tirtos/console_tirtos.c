@@ -111,6 +111,7 @@ void simpleConsole(UART_Handle uart)
     int localTemperatureC;
     int localTemperatureF;
     Int key;
+    const char * oversion;
 
     UART_write(uart, consoleDisplay, sizeof(consoleDisplay));
 
@@ -150,6 +151,8 @@ void simpleConsole(UART_Handle uart)
                 return;
             case 'h':
             default:
+                oversion = opus_get_version_string();
+                UART_write(uart, oversion, 49);
                 UART_write(uart, helpPrompt, sizeof(helpPrompt));
                 break;
         }

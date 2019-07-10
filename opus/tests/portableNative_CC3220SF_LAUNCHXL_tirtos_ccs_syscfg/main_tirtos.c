@@ -36,6 +36,13 @@
  */
 
 /* RTOS header files */
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <stdint.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
 #include <xdc/std.h>
 #include <xdc/runtime/Error.h>
 #include <ti/sysbios/BIOS.h>
@@ -46,6 +53,11 @@
 
 /* Example/Board Header files */
 #include <ti/drivers/Board.h>
+
+#include "opus_multistream.h"
+#include "opus.h"
+#include "opus_private.h"
+#include "test_opus_common.h"
 
 /* Stack size in bytes. Large enough in case debug kernel is used. */
 #define THREADSTACKSIZE    1024
