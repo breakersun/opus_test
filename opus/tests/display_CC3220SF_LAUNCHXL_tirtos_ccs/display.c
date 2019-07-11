@@ -62,6 +62,8 @@
 #include "opus_private.h"
 #include "test_opus_common.h"
 
+Display_Handle hSerial;
+
 /*
  *  ======== mainThread ========
  */
@@ -86,7 +88,7 @@ void *mainThread(void *arg0)
      * Display_config[] array of the board file.
      */
     Display_Handle hLcd = Display_open(Display_Type_LCD, &params);
-    Display_Handle hSerial = Display_open(Display_Type_UART, &params);
+    hSerial = Display_open(Display_Type_UART, &params);
 
     if (hSerial == NULL && hLcd == NULL) {
         /* Failed to open a display */
@@ -99,6 +101,7 @@ void *mainThread(void *arg0)
 
         oversion = opus_get_version_string();
         Display_printf(hSerial, 0, 0, oversion);
+        test_failed();
     }
     else
     {

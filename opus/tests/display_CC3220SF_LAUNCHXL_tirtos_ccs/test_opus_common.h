@@ -25,6 +25,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+extern Display_Handle hSerial;
+
 static OPUS_INLINE void deb2_impl(unsigned char *_t,unsigned char **_p,int _k,int _x,int _y)
 {
   int i;
@@ -69,12 +71,12 @@ __declspec(noreturn)
 #endif
 static OPUS_INLINE void _test_failed(const char *file, int line)
 {
-  fprintf(stderr,"\n ***************************************************\n");
-  fprintf(stderr," ***         A fatal error was detected.         ***\n");
-  fprintf(stderr," ***************************************************\n");
-  fprintf(stderr,"Please report this failure and include\n");
-  fprintf(stderr,"'make check SEED=%u fails %s at line %d for %s'\n",iseed,file,line,opus_get_version_string());
-  fprintf(stderr,"and any relevant details about your system.\n\n");
+    Display_printf(hSerial, 0, 0,"\n ***************************************************\n");
+    Display_printf(hSerial, 0, 0," ***         A fatal error was detected.         ***\n");
+    Display_printf(hSerial, 0, 0," ***************************************************\n");
+    Display_printf(hSerial, 0, 0,"Please report this failure and include\n");
+    Display_printf(hSerial, 0, 0,"'make check SEED=%u fails %s at line %d for %s'\n",iseed,file,line,opus_get_version_string());
+    Display_printf(hSerial, 0, 0,"and any relevant details about your system.\n\n");
   abort();
 }
 #define test_failed() _test_failed(__FILE__, __LINE__);
