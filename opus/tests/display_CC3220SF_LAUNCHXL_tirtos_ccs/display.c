@@ -171,27 +171,7 @@ void *mainThread(void *arg0)
 
     /* Loop forever, alternating LED state and Display output. */
     while (1) {
-        ledPinValue = GPIO_read(Board_GPIO_LED0);
-
-        /* Print to LCD and clear alternate lines if the LED is on or not. */
-        Display_clearLine(hLcd, ledPinValue ? 1 : 0);
-        Display_printf(hLcd, ledPinValue ? 0 : 1, 0, "LED: %s",
-                (ledPinValue == Board_GPIO_LED_ON) ? "On!":"Off!");
-
-        /* Print to UART */
-        Display_clearLine(hSerial, ledPinValue ? 1 : 0);
-        Display_printf(hSerial, ledPinValue ? 0 : 1, 0, "LED: %s",
-                (ledPinValue == Board_GPIO_LED_ON) ? serialLedOn : serialLedOff);
-
-        /* If ANSI is supported, print a "log" in the scrolling region */
-        if (Display_getType(hSerial) & Display_Type_ANSI)
-        {
-            char *currLedState = (ledPinValue == Board_GPIO_LED_ON) ? serialLedOn : serialLedOff;
-            Display_printf(hSerial, DisplayUart_SCROLLING, 0, "[ %d ] LED: %s", loopCount++, currLedState);
-        }
-
         sleep(1);
-
         /* Toggle LED */
         GPIO_toggle(Board_GPIO_LED0);
     }
