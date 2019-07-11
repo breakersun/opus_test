@@ -15,4 +15,5 @@
 	<templateProperties value="id=display_CC3220SF_LAUNCHXL_tirtos_ccs.projectspec.display_CC3220SF_LAUNCHXL_tirtos_ccs,buildProfile=release,isHybrid=true"/>
 	<origin value="G:\ti\ccs901\simplelink_cc32xx_sdk_3_10_00_04\examples\rtos\CC3220SF_LAUNCHXL\drivers\display\tirtos\ccs\display_CC3220SF_LAUNCHXL_tirtos_ccs.projectspec"/>
 	<filesToOpen value=""/>
+	<isTargetManual value="false"/>
 </projectOptions>
