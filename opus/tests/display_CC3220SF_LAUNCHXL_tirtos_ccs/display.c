@@ -71,7 +71,7 @@ void *mainThread(void *arg0)
 {
     unsigned int ledPinValue;
     unsigned int loopCount = 0;
-    const char * oversion;
+    char * oversion;
 
     GPIO_init();
     Display_init();
@@ -99,9 +99,8 @@ void *mainThread(void *arg0)
     if (hSerial) {
         Display_printf(hSerial, 0, 0, "Hello Serial!");
 
-        oversion = opus_get_version_string();
+        oversion = (char *)opus_get_version_string();
         Display_printf(hSerial, 0, 0, oversion);
-        test_failed();
     }
     else
     {
