@@ -35,6 +35,12 @@
  */
 #include <stdint.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <limits.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
 
 /* TI-Drivers Header files */
 #include <ti/drivers/GPIO.h>
@@ -51,6 +57,11 @@
 /* Example GrLib image */
 #include "splash_image.h"
 
+#include "opus_multistream.h"
+#include "opus.h"
+#include "opus_private.h"
+#include "test_opus_common.h"
+
 /*
  *  ======== mainThread ========
  */
@@ -58,6 +69,7 @@ void *mainThread(void *arg0)
 {
     unsigned int ledPinValue;
     unsigned int loopCount = 0;
+    const char * oversion;
 
     GPIO_init();
     Display_init();
@@ -84,6 +96,9 @@ void *mainThread(void *arg0)
     /* Check if the selected Display type was found and successfully opened */
     if (hSerial) {
         Display_printf(hSerial, 0, 0, "Hello Serial!");
+
+        oversion = opus_get_version_string();
+        Display_printf(hSerial, 0, 0, oversion);
     }
     else
     {

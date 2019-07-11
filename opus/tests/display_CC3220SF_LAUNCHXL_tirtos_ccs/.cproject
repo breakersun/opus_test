@@ -41,6 +41,10 @@
 									<listOptionValue builtIn="false" value="${PROJECT_ROOT}"/>
 									<listOptionValue builtIn="false" value="${COM_TI_SIMPLELINK_CC32XX_SDK_INSTALL_DIR}/source/ti/posix/ccs"/>
 									<listOptionValue builtIn="false" value="${CG_TOOL_ROOT}/include"/>
+									<listOptionValue builtIn="false" value="${PROJECT_LOC}/../../opus-1.3.1/celt/"/>
+									<listOptionValue builtIn="false" value="${PROJECT_LOC}/../../opus-1.3.1/include/"/>
+									<listOptionValue builtIn="false" value="${PROJECT_LOC}/../../opus-1.3.1/silk/"/>
+									<listOptionValue builtIn="false" value="${PROJECT_LOC}/../../opus-1.3.1/src/"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.DEFINE.781725234" name="Pre-define NAME (--define, -D)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.DEFINE" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="${INHERITED_SYMBOLS}"/>
@@ -79,6 +83,7 @@
 									<listOptionValue builtIn="false" value="ti/dpl/lib/dpl_cc32xx.aem4"/>
 									<listOptionValue builtIn="false" value="${GENERATED_LIBRARIES}"/>
 									<listOptionValue builtIn="false" value="ti/devices/cc32xx/driverlib/ccs/Release/driverlib.a"/>
+									<listOptionValue builtIn="false" value="${PROJECT_LOC}/../../opuslib/Debug/opuslib_131.lib"/>
 									<listOptionValue builtIn="false" value="libc.a"/>
 								</option>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.exeLinker.inputType__CMD_SRCS.1571264607" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.exeLinker.inputType__CMD_SRCS"/>
