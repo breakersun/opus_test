@@ -78,262 +78,68 @@ opus_uint32 *null_uint_ptr = (opus_uint32 *)NULL;
 
 static const opus_int32 opus_rates[5] = {48000,24000,16000,12000,8000};
 
+#define PACKETSIZE 512
+#define CHANNELS 2
+#define FRAMESIZE 128
+
 opus_int32 test_dec_api(void)
 {
-   opus_uint32 dec_final_range;
-   OpusDecoder *dec;
-   OpusDecoder *dec2;
-   opus_int32 i,j,cfgs;
-   unsigned char packet[1276];
-#ifndef DISABLE_FLOAT_API
-   float fbuf[960*2];
-#endif
-   short sbuf[960*2];
-   int c,err;
+    OpusDecoder *decoder;
+    int result;
+    int error;
 
-   cfgs=0;
-   /*First test invalid configurations which should fail*/
-   Display_printf(hSerial, 0, 0,"\n  Decoder basic API tests\n");
-   Display_printf(hSerial, 0, 0,"  ---------------------------------------------------\n");
-   for(c=0;c<4;c++)
-   {
-      i=opus_decoder_get_size(c);
-      if(((c==1||c==2)&&(i<=2048||i>1<<16))||((c!=1&&c!=2)&&i!=0))test_failed();
-      Display_printf(hSerial, 0, 0,"    opus_decoder_get_size(%d)=%d ...............%s OK.\n",c,i,i>0?"":"....");
-      cfgs++;
-   }
+    unsigned char *in = malloc(PACKETSIZE);
+    opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
 
-   /*Test with unsupported sample rates*/
-   for(c=0;c<4;c++)
-   {
-      for(i=-7;i<=96000;i++)
-      {
-         int fs;
-         if((i==8000||i==12000||i==16000||i==24000||i==48000)&&(c==1||c==2))continue;
-         switch(i)
-         {
-           case(-5):fs=-8000;break;
-           case(-6):fs=INT32_MAX;break;
-           case(-7):fs=INT32_MIN;break;
-           default:fs=i;
-         }
-         err = OPUS_OK;
-         VG_UNDEF(&err,sizeof(err));
-         dec = opus_decoder_create(fs, c, &err);
-         if(err!=OPUS_BAD_ARG || dec!=NULL)test_failed();
-         cfgs++;
-         dec = opus_decoder_create(fs, c, 0);
-         if(dec!=NULL)test_failed();
-         cfgs++;
-         dec=malloc(opus_decoder_get_size(2));
-         if(dec==NULL)test_failed();
-         err = opus_decoder_init(dec,fs,c);
-         if(err!=OPUS_BAD_ARG)test_failed();
-         cfgs++;
-         free(dec);
-      }
-   }
+    Display_printf(hSerial, 0, 0,"\n  Decoder basic API tests\n");
 
-   VG_UNDEF(&err,sizeof(err));
-   dec = opus_decoder_create(48000, 2, &err);
-   if(err!=OPUS_OK || dec==NULL)test_failed();
-   VG_CHECK(dec,opus_decoder_get_size(2));
-   cfgs++;
+    Display_printf(hSerial, 0, 0, "  Checking for padding overflow... ");
+    if (!in || !out) {
+        Display_printf(hSerial, 0, 0, "FAIL (out of memory)\n");
+        return -1;
+    }
+    in[0] = 0xff;
+    in[1] = 0x41;
+    memset(in + 2, 0xff, PACKETSIZE - 3);
+    in[PACKETSIZE-1] = 0x0b;
 
-   Display_printf(hSerial, 0, 0,"    opus_decoder_create() ........................ OK.\n");
-   Display_printf(hSerial, 0, 0,"    opus_decoder_init() .......................... OK.\n");
+    decoder = opus_decoder_create(48000, CHANNELS, &error);
+    result = opus_decode(decoder, in, PACKETSIZE, out, FRAMESIZE, 0);
+    opus_decoder_destroy(decoder);
 
-   err=opus_decoder_ctl(dec, OPUS_GET_FINAL_RANGE(null_uint_ptr));
-   if(err != OPUS_BAD_ARG)test_failed();
-   VG_UNDEF(&dec_final_range,sizeof(dec_final_range));
-   err=opus_decoder_ctl(dec, OPUS_GET_FINAL_RANGE(&dec_final_range));
-   if(err!=OPUS_OK)test_failed();
-   VG_CHECK(&dec_final_range,sizeof(dec_final_range));
-   Display_printf(hSerial, 0, 0,"    OPUS_GET_FINAL_RANGE ......................... OK.\n");
-   cfgs++;
+    free(in);
+    free(out);
+    Display_printf(hSerial, 0, 0,"\n  Decoder basic API tests end\n");
+}
 
-   err=opus_decoder_ctl(dec,OPUS_UNIMPLEMENTED);
-   if(err!=OPUS_UNIMPLEMENTED)test_failed();
-   Display_printf(hSerial, 0, 0,"    OPUS_UNIMPLEMENTED ........................... OK.\n");
-   cfgs++;
 
-   err=opus_decoder_ctl(dec, OPUS_GET_BANDWIDTH(null_int_ptr));
-   if(err != OPUS_BAD_ARG)test_failed();
-   VG_UNDEF(&i,sizeof(i));
-   err=opus_decoder_ctl(dec, OPUS_GET_BANDWIDTH(&i));
-   if(err != OPUS_OK || i!=0)test_failed();
-   Display_printf(hSerial, 0, 0,"    OPUS_GET_BANDWIDTH ........................... OK.\n");
-   cfgs++;
+opus_int32 test_enc_api(void)
+{
+    opus_uint32 enc_final_range;
+    OpusEncoder *enc;
+    opus_int32 i,j;
+    int c,err,cfgs;
 
-   err=opus_decoder_ctl(dec, OPUS_GET_SAMPLE_RATE(null_int_ptr));
-   if(err != OPUS_BAD_ARG)test_failed();
-   VG_UNDEF(&i,sizeof(i));
-   err=opus_decoder_ctl(dec, OPUS_GET_SAMPLE_RATE(&i));
-   if(err != OPUS_OK || i!=48000)test_failed();
-   Display_printf(hSerial, 0, 0,"    OPUS_GET_SAMPLE_RATE ......................... OK.\n");
-   cfgs++;
+    unsigned char *in = malloc(PACKETSIZE);
+    opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
 
-   /*GET_PITCH has different execution paths depending on the previously decoded frame.*/
-   err=opus_decoder_ctl(dec, OPUS_GET_PITCH(null_int_ptr));
-   if(err!=OPUS_BAD_ARG)test_failed();
-   cfgs++;
-   VG_UNDEF(&i,sizeof(i));
-   err=opus_decoder_ctl(dec, OPUS_GET_PITCH(&i));
-   if(err != OPUS_OK || i>0 || i<-1)test_failed();
-   cfgs++;
-   VG_UNDEF(packet,sizeof(packet));
-   packet[0]=63<<2;packet[1]=packet[2]=0;
-   if(opus_decode(dec, packet, 3, sbuf, 960, 0)!=960)test_failed();
-   cfgs++;
-   Display_printf(hSerial, 0, 0,"    opus_decode ......................... OK.\n");
-//   VG_UNDEF(&i,sizeof(i));
-//   err=opus_decoder_ctl(dec, OPUS_GET_PITCH(&i));
-//   if(err != OPUS_OK || i>0 || i<-1)test_failed();
-//   cfgs++;
-//   packet[0]=1;
-//   if(opus_decode(dec, packet, 1, sbuf, 960, 0)!=960)test_failed();
-//   cfgs++;
-//   VG_UNDEF(&i,sizeof(i));
-//   err=opus_decoder_ctl(dec, OPUS_GET_PITCH(&i));
-//   if(err != OPUS_OK || i>0 || i<-1)test_failed();
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"    OPUS_GET_PITCH ............................... OK.\n");
-//
-//   err=opus_decoder_ctl(dec, OPUS_GET_LAST_PACKET_DURATION(null_int_ptr));
-//   if(err != OPUS_BAD_ARG)test_failed();
-//   VG_UNDEF(&i,sizeof(i));
-//   err=opus_decoder_ctl(dec, OPUS_GET_LAST_PACKET_DURATION(&i));
-//   if(err != OPUS_OK || i!=960)test_failed();
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"    OPUS_GET_LAST_PACKET_DURATION ................ OK.\n");
-//
-//   VG_UNDEF(&i,sizeof(i));
-//   err=opus_decoder_ctl(dec, OPUS_GET_GAIN(&i));
-//   VG_CHECK(&i,sizeof(i));
-//   if(err != OPUS_OK || i!=0)test_failed();
-//   cfgs++;
-//   err=opus_decoder_ctl(dec, OPUS_GET_GAIN(null_int_ptr));
-//   if(err != OPUS_BAD_ARG)test_failed();
-//   cfgs++;
-//   err=opus_decoder_ctl(dec, OPUS_SET_GAIN(-32769));
-//   if(err != OPUS_BAD_ARG)test_failed();
-//   cfgs++;
-//   err=opus_decoder_ctl(dec, OPUS_SET_GAIN(32768));
-//   if(err != OPUS_BAD_ARG)test_failed();
-//   cfgs++;
-//   err=opus_decoder_ctl(dec, OPUS_SET_GAIN(-15));
-//   if(err != OPUS_OK)test_failed();
-//   cfgs++;
-//   VG_UNDEF(&i,sizeof(i));
-//   err=opus_decoder_ctl(dec, OPUS_GET_GAIN(&i));
-//   VG_CHECK(&i,sizeof(i));
-//   if(err != OPUS_OK || i!=-15)test_failed();
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"    OPUS_SET_GAIN ................................ OK.\n");
-//   Display_printf(hSerial, 0, 0,"    OPUS_GET_GAIN ................................ OK.\n");
-//
-//   /*Reset the decoder*/
-//   dec2=malloc(opus_decoder_get_size(2));
-//   memcpy(dec2,dec,opus_decoder_get_size(2));
-//   if(opus_decoder_ctl(dec, OPUS_RESET_STATE)!=OPUS_OK)test_failed();
-//   if(memcmp(dec2,dec,opus_decoder_get_size(2))==0)test_failed();
-//   free(dec2);
-//   Display_printf(hSerial, 0, 0,"    OPUS_RESET_STATE ............................. OK.\n");
-//   cfgs++;
-//
-//   VG_UNDEF(packet,sizeof(packet));
-//   packet[0]=0;
-//   if(opus_decoder_get_nb_samples(dec,packet,1)!=480)test_failed();
-//   if(opus_packet_get_nb_samples(packet,1,48000)!=480)test_failed();
-//   if(opus_packet_get_nb_samples(packet,1,96000)!=960)test_failed();
-//   if(opus_packet_get_nb_samples(packet,1,32000)!=320)test_failed();
-//   if(opus_packet_get_nb_samples(packet,1,8000)!=80)test_failed();
-//   packet[0]=3;
-//   if(opus_packet_get_nb_samples(packet,1,24000)!=OPUS_INVALID_PACKET)test_failed();
-//   packet[0]=(63<<2)|3;
-//   packet[1]=63;
-//   if(opus_packet_get_nb_samples(packet,0,24000)!=OPUS_BAD_ARG)test_failed();
-//   if(opus_packet_get_nb_samples(packet,2,48000)!=OPUS_INVALID_PACKET)test_failed();
-//   if(opus_decoder_get_nb_samples(dec,packet,2)!=OPUS_INVALID_PACKET)test_failed();
-//   Display_printf(hSerial, 0, 0,"    opus_{packet,decoder}_get_nb_samples() ....... OK.\n");
-//   cfgs+=9;
-//
-//   if(OPUS_BAD_ARG!=opus_packet_get_nb_frames(packet,0))test_failed();
-//   for(i=0;i<256;i++) {
-//     int l1res[4]={1,2,2,OPUS_INVALID_PACKET};
-//     packet[0]=i;
-//     if(l1res[packet[0]&3]!=opus_packet_get_nb_frames(packet,1))test_failed();
-//     cfgs++;
-//     for(j=0;j<256;j++) {
-//       packet[1]=j;
-//       if(((packet[0]&3)!=3?l1res[packet[0]&3]:packet[1]&63)!=opus_packet_get_nb_frames(packet,2))test_failed();
-//       cfgs++;
-//     }
-//   }
-//   Display_printf(hSerial, 0, 0,"    opus_packet_get_nb_frames() .................. OK.\n");
-//
-//   for(i=0;i<256;i++) {
-//     int bw;
-//     packet[0]=i;
-//     bw=packet[0]>>4;
-//     bw=OPUS_BANDWIDTH_NARROWBAND+(((((bw&7)*9)&(63-(bw&8)))+2+12*((bw&8)!=0))>>4);
-//     if(bw!=opus_packet_get_bandwidth(packet))test_failed();
-//     cfgs++;
-//   }
-//   Display_printf(hSerial, 0, 0,"    opus_packet_get_bandwidth() .................. OK.\n");
-//
-//   for(i=0;i<256;i++) {
-//     int fp3s,rate;
-//     packet[0]=i;
-//     fp3s=packet[0]>>3;
-//     fp3s=((((3-(fp3s&3))*13&119)+9)>>2)*((fp3s>13)*(3-((fp3s&3)==3))+1)*25;
-//     for(rate=0;rate<5;rate++) {
-//       if((opus_rates[rate]*3/fp3s)!=opus_packet_get_samples_per_frame(packet,opus_rates[rate]))test_failed();
-//       cfgs++;
-//     }
-//   }
-//   Display_printf(hSerial, 0, 0,"    opus_packet_get_samples_per_frame() .......... OK.\n");
-//
-//   packet[0]=(63<<2)+3;
-//   packet[1]=49;
-//   for(j=2;j<51;j++)packet[j]=0;
-//   VG_UNDEF(sbuf,sizeof(sbuf));
-//   if(opus_decode(dec, packet, 51, sbuf, 960, 0)!=OPUS_INVALID_PACKET)test_failed();
-//   cfgs++;
-//   packet[0]=(63<<2);
-//   packet[1]=packet[2]=0;
-//   if(opus_decode(dec, packet, -1, sbuf, 960, 0)!=OPUS_BAD_ARG)test_failed();
-//   cfgs++;
-//   if(opus_decode(dec, packet, 3, sbuf, 60, 0)!=OPUS_BUFFER_TOO_SMALL)test_failed();
-//   cfgs++;
-//   if(opus_decode(dec, packet, 3, sbuf, 480, 0)!=OPUS_BUFFER_TOO_SMALL)test_failed();
-//   cfgs++;
-//   if(opus_decode(dec, packet, 3, sbuf, 960, 0)!=960)test_failed();
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"    opus_decode() ................................ OK.\n");
-//#ifndef DISABLE_FLOAT_API
-//   VG_UNDEF(fbuf,sizeof(fbuf));
-//   if(opus_decode_float(dec, packet, 3, fbuf, 960, 0)!=960)test_failed();
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"    opus_decode_float() .......................... OK.\n");
-//#endif
-//
-//#if 0
-//   /*These tests are disabled because the library crashes with null states*/
-//   if(opus_decoder_ctl(0,OPUS_RESET_STATE)         !=OPUS_INVALID_STATE)test_failed();
-//   if(opus_decoder_init(0,48000,1)                 !=OPUS_INVALID_STATE)test_failed();
-//   if(opus_decode(0,packet,1,outbuf,2880,0)        !=OPUS_INVALID_STATE)test_failed();
-//   if(opus_decode_float(0,packet,1,0,2880,0)       !=OPUS_INVALID_STATE)test_failed();
-//   if(opus_decoder_get_nb_samples(0,packet,1)      !=OPUS_INVALID_STATE)test_failed();
-//   if(opus_packet_get_nb_frames(NULL,1)            !=OPUS_BAD_ARG)test_failed();
-//   if(opus_packet_get_bandwidth(NULL)              !=OPUS_BAD_ARG)test_failed();
-//   if(opus_packet_get_samples_per_frame(NULL,48000)!=OPUS_BAD_ARG)test_failed();
-//#endif
-//   opus_decoder_destroy(dec);
-//   cfgs++;
-//   Display_printf(hSerial, 0, 0,"                   All decoder interface tests passed\n");
-//   Display_printf(hSerial, 0, 0,"                             (%6d API invocations)\n",cfgs);
-//   return cfgs;
+    if (!in || !out) {
+        Display_printf(hSerial, 0, 0, "FAIL (out of memory)\n");
+        return -1;
+    }
+
+    in[0] = 0xff;
+    in[1] = 0x41;
+    memset(in + 2, 0xff, PACKETSIZE - 3);
+    in[PACKETSIZE-1] = 0x0b;
+
+    enc = opus_encoder_create(16000, 2, OPUS_APPLICATION_VOIP, NULL);
+    opus_encode(enc, in, PACKETSIZE, out, FRAMESIZE*CHANNELS*sizeof(*out));
+    opus_encoder_destroy(enc);
+    free(in);
+    free(out);
+
+    Display_printf(hSerial, 0, 0,"    opus_encode() ................................ OK.\n");
 }
 
 /*
@@ -374,7 +180,8 @@ void *mainThread(void *arg0)
         oversion = (char *)opus_get_version_string();
         Display_printf(hSerial, 0, 0, oversion);
 
-        test_dec_api();
+        //test_dec_api();
+        test_enc_api();
     }
     else
     {
