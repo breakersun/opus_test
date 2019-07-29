@@ -114,6 +114,7 @@ opus_int32 test_dec_api(void)
     OpusDecoder *decoder;
     int result;
     int error;
+    int channels = 0;
 
     unsigned char *in = malloc(PACKETSIZE);
     opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
@@ -127,7 +128,8 @@ opus_int32 test_dec_api(void)
     memset(in + 2, 0xff, PACKETSIZE - 3);
     in[PACKETSIZE-1] = 0x0b;
 
-    decoder = opus_decoder_create(48000, CHANNELS, &error);
+    UART_PRINT("channels : %d\r\n", channels);
+    decoder = opus_decoder_create(8000, channels, &error);
     result = opus_decode(decoder, in, PACKETSIZE, out, FRAMESIZE, 0);
     opus_decoder_destroy(decoder);
 
@@ -210,10 +212,8 @@ int32_t DisplayAppBanner(char* appName,
     uint8_t ConfigOpt = SL_DEVICE_GENERAL_VERSION;
     SlDeviceVersion_t ver = {0};
 
-    char * oversion;
-
-    oversion = (char *)opus_get_version_string();
-    UART_PRINT(oversion);
+//    test_dec_api();
+    test_enc_api();
 
     ConfigSize = sizeof(SlDeviceVersion_t);
 
