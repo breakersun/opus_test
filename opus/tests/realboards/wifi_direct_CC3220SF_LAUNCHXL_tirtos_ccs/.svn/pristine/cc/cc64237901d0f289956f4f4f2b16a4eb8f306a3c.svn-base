@@ -1,0 +1,121 @@
+# FIXED
+
+p2p.obj: ../p2p.c
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/pthread.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdint.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_stdint40.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/stdint.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/cdefs.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_types.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_stdint.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_stdint.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sys/types.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_ti_config.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/linkage.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sys/_internal.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/time.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/abi_prefix.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/xlocale/_time.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/time.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/signal.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/signal.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/sys/timespec.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_timespec.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sched.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdbool.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/simplelink.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/porting/user.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/string.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/porting/cc_pal.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/ClockP.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/SemaphoreP.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/MutexP.h
+p2p.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdlib.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/source/objInclusion.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/simplelink.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/trace.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/fs.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/sl_socket.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netapp.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlan.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/device.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netcfg.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netutil.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/errors.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/eventreg.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlanconfig.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/source/nonos.h
+p2p.obj: ../p2p.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlan.h
+p2p.obj: ../uart_term.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/UART.h
+p2p.obj: ../Board.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/Board.h
+p2p.obj: ../CC3220SF_LAUNCHXL.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netcfg.h
+p2p.obj: ../network_if.h
+p2p.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/unistd.h
+p2p.obj: ../audio_send.h
+p2p.obj: ../audio_receive.h
+
+../p2p.c: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/pthread.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_stdint40.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/cdefs.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_types.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_stdint.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sys/types.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_ti_config.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/linkage.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sys/_internal.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/time.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/abi_prefix.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/xlocale/_time.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/time.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/signal.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/signal.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/../include/sys/timespec.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_timespec.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/sched.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdbool.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/simplelink.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/porting/user.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/string.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/porting/cc_pal.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/ClockP.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/SemaphoreP.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/dpl/MutexP.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdlib.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/source/objInclusion.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/simplelink.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/trace.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/fs.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/sl_socket.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netapp.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlan.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/device.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netcfg.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netutil.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/errors.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/eventreg.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlanconfig.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/source/nonos.h: 
+../p2p.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/wlan.h: 
+../uart_term.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/UART.h: 
+../Board.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/Board.h: 
+../CC3220SF_LAUNCHXL.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/net/wifi/netcfg.h: 
+../network_if.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/posix/ccs/unistd.h: 
+../audio_send.h: 
+../audio_receive.h: 

@@ -1,0 +1,63 @@
+# FIXED
+
+pcm_handler.obj: ../pcm_handler.c
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdio.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_ti_config.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/linkage.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdarg.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_types.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/cdefs.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/string.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/udma.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/rom_map.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/rom_patch.h
+pcm_handler.obj: ../circ_buff.h
+pcm_handler.obj: ../pcm_handler.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/I2S.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdbool.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdint.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_stdint40.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/stdint.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_stdint.h
+pcm_handler.obj: C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_stdint.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/utils/List.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/inc/hw_memmap.h
+pcm_handler.obj: ../udma_if.h
+pcm_handler.obj: ../uart_term.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/UART.h
+pcm_handler.obj: ../Board.h
+pcm_handler.obj: C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/Board.h
+pcm_handler.obj: ../CC3220SF_LAUNCHXL.h
+
+../pcm_handler.c: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdio.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_ti_config.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/linkage.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdarg.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_types.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/cdefs.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_types.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/string.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/udma.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/rom_map.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/driverlib/rom_patch.h: 
+../circ_buff.h: 
+../pcm_handler.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/I2S.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stddef.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdbool.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/_stdint40.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/machine/_stdint.h: 
+C:/ti/ccs901/ccs/tools/compiler/ti-cgt-arm_18.12.1.LTS/include/sys/_stdint.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/utils/List.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/devices/cc32xx/inc/hw_memmap.h: 
+../udma_if.h: 
+../uart_term.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/UART.h: 
+../Board.h: 
+C:/ti/simplelink_cc32xx_sdk_3_20_00_06/source/ti/drivers/Board.h: 
+../CC3220SF_LAUNCHXL.h: 

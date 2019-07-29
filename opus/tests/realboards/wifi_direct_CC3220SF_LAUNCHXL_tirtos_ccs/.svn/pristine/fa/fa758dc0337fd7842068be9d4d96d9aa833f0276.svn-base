@@ -1,0 +1,96 @@
+//*****************************************************************************
+// audio receive.c
+//
+//*****************************************************************************
+#include "pthread.h"
+#include "stdbool.h"
+#include "simplelink.h"
+#include "p2p.h"
+#include "wlan.h"
+#include "uart_term.h"
+#include "netcfg.h"
+#include "network_if.h"
+#include "unistd.h"
+#include "audio_send.h"
+#include "audio_receive.h"
+#include "sl_socket.h"
+#include "i2s_if.h"
+#include <ti/drivers/I2S.h>
+
+
+static void* Audio_Receive_Thread( void *pvParameters )
+{
+    long iRetVal = -1;
+    I2S_Transaction* transactionToTreat = (I2S_Transaction*) List_head(&treatmentList);
+
+    while(1)
+    {
+        char buf[32];
+        iRetVal = sl_RecvFrom(g_udpSocket.iSockDesc,
+                                                     buf,
+                                                     14,
+                                                     0,
+                                                     (struct SlSockAddr_t *)&(g_udpSocket.Client),
+                                                     (SlSocklen_t*)&(g_udpSocket.iClientLength));
+        Report("receive: %s \r\n",buf);
+        continue;
+        transactionToTreat = (I2S_Transaction*) List_head(&treatmentList);
+        if(transactionToTreat != NULL){
+            iRetVal = sl_RecvFrom(g_udpSocket.iSockDesc,
+                                 (char*)(transactionToTreat->bufPtr),
+                                 BUFSIZE,
+                                 0,
+                                 (struct SlSockAddr_t *)&(g_udpSocket.Client),
+                                 (SlSocklen_t*)&(g_udpSocket.iClientLength));
+            if(iRetVal>0)
+            {
+                /* Place in the write-list the transaction we just treated */
+                List_remove(&treatmentList, (List_Elem*)transactionToTreat);
+                List_put(&i2sWriteList, (List_Elem*)transactionToTreat);
+            }
+        }
+    }
+    pthread_exit(0);
+    return NULL;
+}
+
+
+void Audio_Receive_Init(void)
+{
+    pthread_t thread;
+    pthread_attr_t pAttrs;
+    struct sched_param priParam;
+    int retc;
+    int detachState;
+
+    /* Set priority and stack size attributes */
+    pthread_attr_init(&pAttrs);
+    priParam.sched_priority = 1;
+
+    detachState = PTHREAD_CREATE_DETACHED;
+    retc = pthread_attr_setdetachstate(&pAttrs, detachState);
+    if(retc != 0)
+    {
+       /* pthread_attr_setdetachstate() failed */
+       Report("pthread_attr_setdetachstate() failed. \r\n");
+       while(1);
+    }
+
+    pthread_attr_setschedparam(&pAttrs, &priParam);
+
+    retc |= pthread_attr_setstacksize(&pAttrs, 4096);
+    if(retc != 0)
+    {
+       /* pthread_attr_setstacksize() failed */
+       Report("pthread_attr_setstacksize() failed. \r\n");
+       while(1);
+    }
+
+    retc = pthread_create(&thread, &pAttrs, Audio_Receive_Thread, NULL);
+    if(retc != 0)
+    {
+       /* pthread_create() failed */
+       Report("Audio_Receive_Thread create failed. \r\n");
+       while(1);
+    }
+}

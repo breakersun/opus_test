@@ -1,0 +1,89 @@
+################################################################################
+# Automatically-generated file. Do not edit!
+################################################################################
+
+SHELL = cmd.exe
+
+# Add inputs and outputs from these tool invocations to the build variables 
+CMD_SRCS += \
+../CC3220SF_LAUNCHXL_TIRTOS.cmd 
+
+C_SRCS += \
+../AudioCodec.c \
+../CC3220SF_LAUNCHXL.c \
+../audio_receive.c \
+../audio_send.c \
+../i2s_if.c \
+../main_tirtos.c \
+../network_if.c \
+../p2p.c \
+../ti_drivers_net_wifi_config.c \
+../uart_term.c \
+../wifi_direct_app.c 
+
+C_DEPS += \
+./AudioCodec.d \
+./CC3220SF_LAUNCHXL.d \
+./audio_receive.d \
+./audio_send.d \
+./i2s_if.d \
+./main_tirtos.d \
+./network_if.d \
+./p2p.d \
+./ti_drivers_net_wifi_config.d \
+./uart_term.d \
+./wifi_direct_app.d 
+
+OBJS += \
+./AudioCodec.obj \
+./CC3220SF_LAUNCHXL.obj \
+./audio_receive.obj \
+./audio_send.obj \
+./i2s_if.obj \
+./main_tirtos.obj \
+./network_if.obj \
+./p2p.obj \
+./ti_drivers_net_wifi_config.obj \
+./uart_term.obj \
+./wifi_direct_app.obj 
+
+OBJS__QUOTED += \
+"AudioCodec.obj" \
+"CC3220SF_LAUNCHXL.obj" \
+"audio_receive.obj" \
+"audio_send.obj" \
+"i2s_if.obj" \
+"main_tirtos.obj" \
+"network_if.obj" \
+"p2p.obj" \
+"ti_drivers_net_wifi_config.obj" \
+"uart_term.obj" \
+"wifi_direct_app.obj" 
+
+C_DEPS__QUOTED += \
+"AudioCodec.d" \
+"CC3220SF_LAUNCHXL.d" \
+"audio_receive.d" \
+"audio_send.d" \
+"i2s_if.d" \
+"main_tirtos.d" \
+"network_if.d" \
+"p2p.d" \
+"ti_drivers_net_wifi_config.d" \
+"uart_term.d" \
+"wifi_direct_app.d" 
+
+C_SRCS__QUOTED += \
+"../AudioCodec.c" \
+"../CC3220SF_LAUNCHXL.c" \
+"../audio_receive.c" \
+"../audio_send.c" \
+"../i2s_if.c" \
+"../main_tirtos.c" \
+"../network_if.c" \
+"../p2p.c" \
+"../ti_drivers_net_wifi_config.c" \
+"../uart_term.c" \
+"../wifi_direct_app.c" 
+
+

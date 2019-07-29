@@ -1,0 +1,828 @@
+/************************************************************************************************************
+//=========P2P.c=========
+//The SimpleLink Wi-Fi device supports the Wi-Fi Direct standard, which enables the device to connect
+//directly to other devices without an AP. In this mode, one device functions as a GROUP OWNER (AP-like
+//mode) and the other functions as a CLIENT (STA-like mode) by inheriting the entire STA and AP
+//attributes. This mode makes it simple and convenient to establish a connection without joining a traditional
+//home, office, or hotspot network.
+//A list of supported features follows:
+//CLIENT and GROUP OWNER (GO) roles
+//Configuring device name, type, listen and operation channels
+//Device discovery (FULL/SOCIAL)
+//Negotiation with all intents (0 to 15)
+//Negotiation initiator policy 鈥� Active, Passive, Random Backoff
+//WPS method Push-Button, Pin code (keypad and display)
+//Join an existing Wi-Fi Direct group
+//Device invites to reconnect persistent group (fast-connect)
+//Group owner accepts join request
+//Persistent group owner, responds to invite requests
+//P2P Connect-Disconnect-Connect transition, also between different modes (for example, GO-CL-GO)
+//P2P Client Legacy PS and NoA support
+//Separate IP Configuration for P2P mode
+//Separate Net Applications configuration on top of Wi-Fi Direct CL/GO mode
+ * author: roger
+ * data: 2019/07/20
+**************************************************************************************************************/
+#include "pthread.h"
+#include "stdbool.h"
+#include "simplelink.h"
+#include "p2p.h"
+#include "wlan.h"
+#include "uart_term.h"
+#include "netcfg.h"
+#include "network_if.h"
+#include "unistd.h"
+#include "audio_send.h"
+#include "audio_receive.h"
+
+#define P2P_DEVICE_TYPE  "1-0050F204-1"
+#define P2P_DEVICE_CL_NAME "P2P-CL"
+#define P2P_DEVICE_GO_NAME "P2P-GO"
+
+unsigned char g_p2pWorkMode = P2P_GROUP_CLIENT_ENABLE;
+tUDPSocket g_udpSocket;
+volatile unsigned char g_ucMicStartFlag = 0;
+volatile unsigned char g_ucSpkrStartFlag = 0;
+
+extern volatile unsigned long g_ulStatus;
+
+extern void InitializeAppVariables(void);
+
+
+long CreateUdpServer(tUDPSocket *pSock)
+{
+    _i16 Status;
+    _u16 len = sizeof(SlNetCfgIpV4Args_t);
+    _u16 ConfigOpt = SL_NETCFG_ADDR_DHCP;  //return value could be one of the following: SL_NETCFG_ADDR_DHCP / SL_NETCFG_ADDR_DHCP_LLA / SL_NETCFG_ADDR_STATIC
+    SlNetCfgIpV4Args_t ipV4 = {0};
+    sl_NetCfgGet(SL_NETCFG_IPV4_AP_ADDR_MODE,&ConfigOpt,&len,(_u8 *)&ipV4);
+
+    Report("DHCP is %s IP %d.%d.%d.%d MASK %d.%d.%d.%d GW %d.%d.%d.%d DNS %d.%d.%d.%d\r\n",
+      (ConfigOpt == SL_NETCFG_ADDR_DHCP) ? "ON" : "OFF",
+      SL_IPV4_BYTE(ipV4.Ip,3),SL_IPV4_BYTE(ipV4.Ip,2),SL_IPV4_BYTE(ipV4.Ip,1),SL_IPV4_BYTE(ipV4.Ip,0),
+      SL_IPV4_BYTE(ipV4.IpMask,3),SL_IPV4_BYTE(ipV4.IpMask,2),SL_IPV4_BYTE(ipV4.IpMask,1),SL_IPV4_BYTE(ipV4.IpMask,0),
+      SL_IPV4_BYTE(ipV4.IpGateway,3),SL_IPV4_BYTE(ipV4.IpGateway,2),SL_IPV4_BYTE(ipV4.IpGateway,1),SL_IPV4_BYTE(ipV4.IpGateway,0),
+      SL_IPV4_BYTE(ipV4.IpDnsServer,3),SL_IPV4_BYTE(ipV4.IpDnsServer,2),SL_IPV4_BYTE(ipV4.IpDnsServer,1),SL_IPV4_BYTE(ipV4.IpDnsServer,0));
+
+    pSock->iSockDesc = sl_Socket(SL_AF_INET, SL_SOCK_DGRAM, 0);
+    if( 0 > pSock->iSockDesc )
+    {
+        // error
+        Report("sl socket create udp id failed.\r\n");
+    }
+    pSock->Server.sin_family = SL_AF_INET;
+    pSock->Server.sin_port = sl_Htons(5050);
+    pSock->Server.sin_addr.s_addr = SL_INADDR_ANY;
+    pSock->iServerLength = sizeof(pSock->Server);
+    Status = sl_Bind(pSock->iSockDesc, ( SlSockAddr_t *)&pSock->Server, pSock->iServerLength);
+    if( Status )
+    {
+        // error
+        Report("sl blind udp id failed.\r\n");
+    }
+
+    pSock->Client.sin_family = SL_AF_INET;
+    pSock->Client.sin_addr.s_addr = sl_Htonl(SL_IPV4_VAL(0,0,0,0));
+    pSock->Client.sin_port = sl_Htons(5050);
+    pSock->iClientLength = sizeof(pSock->Client);
+
+    Report("udp server create. iSockDesc = %d, port = %d, s_addr = %x\r\n",
+           pSock->iSockDesc,
+           pSock->Server.sin_port,
+           pSock->Server.sin_addr.s_addr);
+
+    return 0;
+}
+
+long CreateUdpClient(tUDPSocket *pSock)
+{
+    _u16 len = sizeof(SlNetCfgIpV4Args_t);
+    _u16 ConfigOpt = SL_NETCFG_ADDR_DHCP;  //return value could be one of the following: SL_NETCFG_ADDR_DHCP / SL_NETCFG_ADDR_DHCP_LLA / SL_NETCFG_ADDR_STATIC
+    SlNetCfgIpV4Args_t ipV4 = {0};
+    sl_NetCfgGet(SL_NETCFG_IPV4_STA_ADDR_MODE,&ConfigOpt,&len,(_u8 *)&ipV4);
+
+    Report("DHCP is %s IP %d.%d.%d.%d MASK %d.%d.%d.%d GW %d.%d.%d.%d DNS %d.%d.%d.%d\r\n",
+       (ConfigOpt == SL_NETCFG_ADDR_DHCP) ? "ON" : "OFF",
+       SL_IPV4_BYTE(ipV4.Ip,3),SL_IPV4_BYTE(ipV4.Ip,2),SL_IPV4_BYTE(ipV4.Ip,1),SL_IPV4_BYTE(ipV4.Ip,0),
+       SL_IPV4_BYTE(ipV4.IpMask,3),SL_IPV4_BYTE(ipV4.IpMask,2),SL_IPV4_BYTE(ipV4.IpMask,1),SL_IPV4_BYTE(ipV4.IpMask,0),
+       SL_IPV4_BYTE(ipV4.IpGateway,3),SL_IPV4_BYTE(ipV4.IpGateway,2),SL_IPV4_BYTE(ipV4.IpGateway,1),SL_IPV4_BYTE(ipV4.IpGateway,0),
+       SL_IPV4_BYTE(ipV4.IpDnsServer,3),SL_IPV4_BYTE(ipV4.IpDnsServer,2),SL_IPV4_BYTE(ipV4.IpDnsServer,1),SL_IPV4_BYTE(ipV4.IpDnsServer,0));
+
+    pSock->iSockDesc = sl_Socket(SL_AF_INET, SL_SOCK_DGRAM, 0);
+
+    pSock->Client.sin_family = SL_AF_INET;
+    //pSock->Client.sin_addr.s_addr = sl_Htonl(SL_IPV4_VAL(10,123,45,1));
+    pSock->Client.sin_addr.s_addr = sl_Htonl(ipV4.IpGateway);
+    pSock->Client.sin_port = sl_Htons((_u16)5050);
+    pSock->iClientLength = sizeof(SlSockAddrIn_t);
+
+    Report("udp client created. iSockDesc = %d, port = %d, s_addr = %x\r\n",
+           pSock->iSockDesc,
+           pSock->Client.sin_port,
+           pSock->Client.sin_addr.s_addr);
+
+   return 0;
+}
+
+
+/**
+//Wi-Fi Direct mode is not the initialization mode by default, therefore it must be set by the application.
+//The following API should be called to set the device in Wi-Fi Direct mode. Wi-Fi Direct configuration is
+//not effective until the device enters Wi-Fi Direct mode. This configuration requires a reset and is
+//persistent with no dependency on the system-persistent configuration.
+ **/
+static long Set_Mode(uint32_t uiMode)
+{
+    _i16 Status;
+
+    /*Start the driver                                                       */
+    Status = Network_IF_InitDriver(uiMode);
+    if(Status < 0)
+    {
+        Report("wlan set p2p mode failed.\n\r");
+    }
+
+    return Status;
+}
+
+/**
+//The network configuration for Wi-Fi Direct mode is similar to the STA and AP modes. For CLIENT use
+//STA network configuration parameters, and for GO use AP network configuration parameters.
+//Persistent:
+// CL This configuration is persistent according to the system-persistent configuration
+//GO This configuration is persistent regardless of the system-persistent configuration
+//To change the default configuration, the following settings are available:
+// CLIENT  same network confirmation as the STA mode (static or DHCP address)
+// GO  same network confirmation as the AP mode (static address)
+ **/
+static long Set_Network_Configuration(void)
+{
+    SlNetCfgIpV4Args_t ipV4;
+    _i16 Status;
+    ipV4.Ip = (_u32)SL_IPV4_VAL(192,168,1,108); /* IP address */
+    ipV4.IpMask = (_u32)SL_IPV4_VAL(255,255,255,0); /* Subnet mask for this STA/P2P */
+    ipV4.IpGateway = (_u32)SL_IPV4_VAL(192,168,1,1); /* Default gateway address */
+    ipV4.IpDnsServer = (_u32)SL_IPV4_VAL(192,168,1,1); /* DNS server address */
+    Status = sl_NetCfgSet(SL_NETCFG_IPV4_STA_ADDR_MODE,
+                          SL_NETCFG_ADDR_STATIC,sizeof(SlNetCfgIpV4Args_t) ,(_u8 *)&ipV4);
+    if( Status )
+    {
+        /* error */
+        Report("setting CLIENT static IPv4 address failed.\r\n");
+    }
+    return 0;
+}
+
+/**
+//The device name must be unique because the Wi-Fi Direct connection is device-name based. The
+//device name is compound of the URN and two random characters. Users can set only the URN; the
+//random characters are internally generated. Default = mysimplelink_XX (xx = random two characters).
+//This configuration is persistent according to the system-persistent configuration.
+ **/
+static long Set_Device_Name(void)
+{
+    _i16 Status;
+
+    if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+    {
+        Status = sl_NetAppSet (SL_NETAPP_DEVICE_ID,
+                           SL_NETAPP_DEVICE_URN,
+                           strlen(P2P_DEVICE_GO_NAME),
+                           (_u8 *)P2P_DEVICE_GO_NAME);
+    }else if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+        Status = sl_NetAppSet (SL_NETAPP_DEVICE_ID,
+                           SL_NETAPP_DEVICE_URN,
+                           strlen(P2P_DEVICE_CL_NAME),
+                           (_u8 *)P2P_DEVICE_CL_NAME);
+    }
+    if( Status )
+    {
+        /* error */
+        Report("setting CLIENT static IPv4 address failed.\r\n");
+    }
+
+    return Status;
+}
+
+/**
+//The following macro is used to set the Wi-Fi Direct device type. The device type is published under
+//P2P I.E. The device type is part of the Wi-Fi Direct discovery parameters, and is used to better
+//recognize the device. The maximum length is 17 characters. Default = 1-0050F204-1. This
+//configuration is persistent according to the system-persistent configuration.
+ */
+static long Set_Device_Type(void)
+{
+    _i16 Status;
+    _u8 str[17];
+    _u16 len = strlen(P2P_DEVICE_TYPE);
+    memset(str, 0, 17);
+    memcpy(str, P2P_DEVICE_TYPE, len);
+    Status = sl_WlanSet(SL_WLAN_CFG_P2P_PARAM_ID, SL_WLAN_P2P_OPT_DEV_TYPE, len, str);
+    if( Status )
+    {
+        /* error */
+        Report("set device type failed.\r\n");
+    }
+
+    return Status;
+}
+
+/**
+//The listen channel is used for the discovery state and the value can be 1, 6, or 11. The device stays in
+//this channel when waiting for Wi-Fi Direct probes requests. The operation channel is only used by the
+//GO device. The GO device moves to this channel after the negotiation phase. The default listen
+//channel is randomly assigned between channels 1, 6, or 11. This configuration is persistent according
+//to the system-persistent configuration. The regulatory domain class should be 81 in 2.4 G.
+**/
+static long Set_Listen_and_Operational_Channels(void)
+{
+    _u8 channels [4];
+    _i16 Status;
+    channels [0] = (unsigned char)11; /* listen channel */
+    channels [1] = (unsigned char)81; /* listen regulatory class */
+    channels [2] = (unsigned char)6; /* operational channel */
+    channels [3] = (unsigned char)81; /* operational regulatory class */
+    Status = sl_WlanSet(SL_WLAN_CFG_P2P_PARAM_ID, SL_WLAN_P2P_OPT_CHANNEL_N_REGS,4,channels);
+    if( Status )
+    {
+        /* error */
+        Report("Set Listen and Operational Channels failed.\r\n");
+    }
+
+    return Status;
+}
+
+/**
+//The Wi-Fi Direct connection policy is divided into two major configurations:
+//Wi-Fi Direct Intent Value
+//    This value indicates in which Wi-Fi Direct mode the device acts (CLIENT, GO, or other). This
+//    configuration is done by using the macro SL_WLAN_P2P_POLICY. Three defines can be used when
+//    setting the intent:
+//    1. SL_WLAN_P2P_ROLE_CLIENT (intent 0): Indicates that the device is forced to be CLIENT.
+//    2. SL_WLAN_P2P_ROLE_NEGOTIATE (intent 7): Indicates that the device can be either CLIENT or
+//    GO, depending on the Wi-Fi Direct negotiation tie-breaker. This tie-breaker is the system default.
+//    3. SL_WLAN_P2P_ROLE_GROUP_OWNER (intent 15): Indicates that the device is forced to be P2P
+//    GO.
+//    NOTE: This configuration is persistent according to the system-persistent configuration.
+
+//Negotiation Initiator
+//    This value determines whether the SimpleLink Wi-Fi device first initiates the negotiation or passively
+//    waits for the remote side to initiate the negotiation. This configuration must be used when working with
+//    two SimpleLink Wi-Fi devices. In general, the user does not have a GUI to start the negotiation by
+//    pressing a button or by entering a pin key. Therefore, this option is given to avoid starting the
+//    negotiation at the same time by both devices after the discovery process.
+//    1. SL_WLAN_P2P_NEG_INITIATOR_ACTIVE: When the remote peer is found after the discovery
+//      process, the device immediately sends the negotiation request to the peer device.
+//    2. SL_WLAN_P2P_NEG_INITIATOR_PASSIVE: When the remote peer is found after the discovery
+//      process, the device passively waits for the peer to start the negotiation, and only responds after.
+//    3. SL_WLAN_P2P_NEG_INITIATOR_RAND_BACKOFF: When the remote peer is found after the
+//      discovery process, the device triggers a random timer (1 to 6 seconds). During this period, the device
+//      passively waits for the peer to start the negotiation. If the timer expires without negotiation, the device
+//      immediately sends the negotiation request to the peer device. This is the system default, and also the
+//      recommendation for working with two SimpleLink Wi-Fi devices out-of-the box, because no negotiation
+//      synchronization must be done.
+//    NOTE: This configuration is persistent according to the system-persistent configuration.
+**/
+static long Set_WiFi_Direct_Policy(void)
+{
+    _i16 Status;
+    if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+    {
+        Status = sl_WlanPolicySet(SL_WLAN_POLICY_P2P,
+                              SL_WLAN_P2P_POLICY(SL_WLAN_P2P_ROLE_GROUP_OWNER,SL_WLAN_P2P_NEG_INITIATOR_ACTIVE),
+                              NULL,
+                              0);
+    }
+    else if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+        Status = sl_WlanPolicySet(SL_WLAN_POLICY_P2P,
+                              SL_WLAN_P2P_POLICY(SL_WLAN_P2P_ROLE_CLIENT,SL_WLAN_P2P_NEG_INITIATOR_ACTIVE),
+                              NULL,
+                              0);
+    }
+    if( Status )
+    {
+        /* error */
+        Report("Set Wi-Fi Direct Policy failed. \r\n");
+    }
+
+    return Status;
+}
+
+
+/**
+//This policy is used for automatic connection. The system tries to connect to a peer automatically after
+//reset, or after disconnect operation by the remote peer. There is a general mechanism for the peer profile
+//and peer profile configuration which is not described in this section, though an example of how to add a
+//profile is explained in a later section. The mechanism described here explains how the device uses these
+//profiles in relation to the Wi-Fi Direct automatic connection. The same connection policy can also be
+//configured in STA mode, use the same setting parameters, and be applied in both modes, but it has slight
+//differences.
+//The four connection policy options:
+// Auto  This policy is similar to Auto connection in STA mode. The device starts the Wi-Fi Direct find
+//    process, and searches for all Wi-Fi Direct profiles stored on the device, then tries to find the best
+//    candidate to start negotiating. If at least one candidate is found, the connection attempt is triggered. If
+//    more than one device is found, the best candidate according to profile parameters is chosen.
+// Fast  In Wi-Fi Direct mode, this policy is the equivalent to the Wi-Fi Direct persistent group, but it has
+//    a different meaning between GO and CLIENT. This option is very useful for making a fast connection
+//    after reset, but it is dependent on the last connection state. This option is active only if there was a
+//    successful connection before the device was reset, because the last connection parameters are saved
+//    and used by the fast connection option. If the device was a CLIENT in its last connection (before reset
+//    or remote disconnect) then following the reset, users must send the p2p_invite to the previously
+//    connected GO, to perform a fast reconnection. If the device was the GO in its last connection (before
+//    reset or remote disconnect) then following reset, users must reinvoke the p2p_group_owner, and wait
+//    for the previously connected peer to reconnect to the device.
+/ AnyP2P policy This policy creates a connection to any Wi-Fi Direct peer device found during
+//    discovery. This option does not use any stored profiles and is relevant for negotiation with push-button
+//    only.
+//Auto Provisioning This policy is not relevant in Wi-Fi Direct mode.
+//    Each option in this macro should be sent or set as true or false. Multiple options can be used. This
+//    configuration is persistent according to the system-persistent configuration.
+**/
+static long Configure_Connection_Policy(void)
+{
+    _i16 Status;
+    Status = sl_WlanPolicySet(SL_WLAN_POLICY_CONNECTION,
+                              SL_WLAN_CONNECTION_POLICY(1/*Auto*/,1/*Fast*/, 0/*AnyP2P*/,0/*auto provisioning*/),
+                              NULL,
+                              0);
+    if( Status )
+    {
+        /* error */
+        Report("configure connection policy failed.\r\n");
+    }
+
+    return Status;
+}
+
+/**
+//This section describes how to start a Wi-Fi Direct search or discovery, and how to view the discovered
+//remote Wi-Fi Direct devices. The scan policy must be set to start the Wi-Fi Direct find process, and to
+//discover remote Wi-Fi Direct peers. This process is done by setting a scan policy for Wi-Fi Direct mode.
+//NOTE:
+//    Setting the scan policy should be done while the device is in Wi-Fi Direct mode.
+//    Wi-Fi Direct discovery is performed as a part of any connection, but it can be activated
+//    using SCAN_POLICY as well.
+//    This configuration is not persistent.
+**/
+static long Discovering_Remote_WiFi_Direct_Peers(bool bMasked)
+{
+    _u32 intervalInSeconds = 0;
+    _i16 Status;
+    Status = sl_WlanPolicySet(SL_WLAN_POLICY_SCAN, SL_WLAN_SCAN_POLICY(bMasked,bMasked),
+                              (_u8*)&intervalInSeconds,sizeof(intervalInSeconds));
+    if( Status )
+    {
+        /* error */
+        Report("Discovering Remote Wi-Fi Direct Peers failed.\r\n");
+    }
+
+    return Status;
+}
+
+/**
+//There are two ways to see and get Wi-Fi Direct remote devices that were discovered during the Wi-Fi
+//Direct find and search operation:
+//Listening to the event SL_WLAN_EVENT_P2P_DEVFOUND:
+//    This event is sent asynchronously to the host when a remote Wi-Fi Direct is found, and contains the
+//    MAC address, device name, and length of the device name. By listening to this event, the user can
+//    immediately find each remote Wi-Fi Direct device that exists in their neighborhood, and issue a
+//    connect or add profile command.
+//Calling sl_WlanGetNetworkList:
+//    By calling this API, the user receives a list of remote peers that were found during the scan and
+//    saved in the device cache memory. By receiving the network list, the user can immediately find any
+//    remote Wi-Fi Direct device and issue a manual connection or add profile command.
+**/
+static long Retrieve_Remote_WiFi_Direct_Peers(void)
+{
+    SlWlanNetworkEntry_t netEntries[30];
+    int i;
+
+    _i16 resultsCount = sl_WlanGetNetworkList(0,30,&netEntries[0]);
+    for(i=0;i<resultsCount;i++)
+    {
+        Report("%d: %s\r\n", i, netEntries[i]);
+    }
+
+    return 0;
+}
+
+/**
+//Enabling the scan policy sets the device to be discoverable for other devices. The two following
+//options are available to complete the connection:
+//Combine the scan policy first with the connection policy AnyP2P, and allow the remote device to
+//    find and complete the connection without any action from the user side (PBC only).
+//Listen to the SL_WLAN_EVENT_P2P_REQUEST event. This event holds information about the
+//    remote device that initiated the connection such as the device name, name length, MAC address,
+//    and WPS method. To complete the connection issue, connect or add profile command with the
+//    correct parameters.
+//Negotiation Method
+//    The following are two different Wi-Fi Direct negotiation methods which indicate the WPS phase that
+//    follows to the negotiation:
+//    Push-button
+//        Both sides negotiate with PBC method. Define: SL_WLAN_SEC_TYPE_P2P_PBC.
+//    Pin Code Connection
+//        Divided to two options:
+//        PIN_DISPLAY this side looks for this pin to be written by its remote peer. Define:
+//        SL_WLAN_SEC_TYPE_P2P_PIN_DISPLAY
+//        PIN_KEYPAD  this side sends a pin code to its remote peer. Define:
+//        SL_WLAN_SEC_TYPE_P2P_PIN_KEYPAD
+//    These parameters influence the negotiation method and are supplied during the manual connection API
+//    command that comes from the host or by setting the profile for automatic connection. The negotiation
+//    method is performed by the device without a user interference.
+//    NOTE: If no pin code is entered in the display side, the NWP auto-generates the pin code from the
+//    device MAC using the following method:
+//        1. Take the 7 LSB decimal digits in the device MAC address.
+//        2. Add the checksum of the 7 LSB decimal digits to the LSB (8 digits total).
+//    For example, if the MAC address is 03:4A:22:3B:FA:42, convert to it decimals (059:250:066);
+//    7 LSB decimal digits are: 9250066, and the WPS pin checksum digit is 2. The default pin
+//    code for this MAC is 92500662.
+//    Configure the negotiation method by setting the security type in the security structure when issuing a
+//    connect or add profile command.
+//Push Button: secParams.Type = SL_WLAN_SEC_TYPE_P2P_PBC
+//Pin Code Keypad:
+//    secParams.Type = SL_WLAN_SEC_TYPE_PIN_KEYPAD
+//    secParams.Key = 12345670
+//Pin Code Display:
+//    secParams.Type = SL_WLAN_SEC_TYPE_PIN_ DISPLAY
+//    secParams.Key = 12345670
+//Manual Connection
+//    After finding a remote Wi-Fi Direct device, the host can instruct the device to connect to it by issuing a
+//    simple connect command. This command performs immediate Wi-Fi Direct discovery, and once the
+//    remote device is found, the negotiation phase is started according to the negotiation initiator policy,
+//    method, and intent selected.
+//    NOTE:
+//        The connection parameters are not saved to flash memory so in case of disconnection
+//            or reset no reconnection will be done, unless fast-connect policy is on.
+//        This connection is treated as higher priority than connection through profiles. This
+//            indicates that if there is already an existing Wi-Fi Direct connection in the system, the
+//            current connection will be disconnected and the manual connection is carried out.
+//        At the beginning of the discovery phase, full scan cycle on all channels is performed to
+//            find Autonomous GO which can operate on every channel.
+**/
+static long WiFi_Direct_Remote_Connection(void)
+{
+    SlWlanSecParams_t SecurityParams;
+    _u8 SSID_Remote_Name[32];
+    int8_t Str_Length;
+    _u8 bssidEmpty[6] = {0,0,0,0,0,0};
+
+    memset(SSID_Remote_Name, '\0', sizeof(SSID_Remote_Name));
+
+    if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+    {
+        Str_Length = strlen(P2P_DEVICE_CL_NAME);
+        /*Copy the Default SSID to the local variable                        */
+        strncpy(SSID_Remote_Name, P2P_DEVICE_CL_NAME, Str_Length);
+    }
+    else if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+        Str_Length = strlen(P2P_DEVICE_GO_NAME);
+        /*Copy the Default SSID to the local variable                        */
+        strncpy(SSID_Remote_Name, P2P_DEVICE_GO_NAME, Str_Length);
+    }
+
+    /*Initialize AP security params                                          */
+    SecurityParams.Key = (signed char *) SECURITY_KEY;
+    SecurityParams.KeyLen = strlen(SECURITY_KEY);
+    SecurityParams.Type = SECURITY_TYPE;
+
+    ASSERT_ON_ERROR(sl_WlanConnect(SSID_Remote_Name,Str_Length,bssidEmpty,&SecurityParams,NULL));
+
+    return 0;
+}
+
+
+/**
+ * Wi-Fi Direct Profiles
+//The purpose of profile configuration is to make an automatic Wi-Fi Direct connection after reset, or
+//after disconnection from the remote peer device. The add profile command stores the Wi-Fi Direct
+//remote device parameters in flash as a new profile, along with profile priority. These profiles are similar
+//to the STA mode profiles and have the same automatic connection behavior. The connection is
+//dependent on the profile policy configuration (see the connection policy section). If the Auto policy is
+//on, a Wi-Fi Direct discovery is performed, and if one or more of the found remote devices matches one
+//of the profiles, a negotiation phase is started according to the negotiation initiator policy, method, and
+//intent selected. The chosen profile is the one with the highest-priority profile.
+//NOTE: If a manual connection is sent during a profile connection, the profile connection is stopped,
+//and the manual connection is started.
+ * **/
+static long Wifi_Direct_Profiles(void)
+{
+   _i16 Status;
+   SlWlanSecParams_t SecurityParams;
+   _u8 SSID_Remote_Name[32];
+   int8_t Str_Length;
+   _u8 bssidEmpty[6] = {0,0,0,0,0,0};
+
+   memset(SSID_Remote_Name, '\0', sizeof(SSID_Remote_Name));
+
+   if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+   {
+       Str_Length = strlen(P2P_DEVICE_CL_NAME);
+       /*Copy the Default SSID to the local variable                        */
+       strncpy(SSID_Remote_Name, P2P_DEVICE_CL_NAME, Str_Length);
+   }
+   else if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+   {
+       Str_Length = strlen(P2P_DEVICE_GO_NAME);
+       /*Copy the Default SSID to the local variable                        */
+       strncpy(SSID_Remote_Name, P2P_DEVICE_GO_NAME, Str_Length);
+   }
+
+   /*Initialize AP security params                                          */
+   SecurityParams.Key = (signed char *) SECURITY_KEY;
+   SecurityParams.KeyLen = strlen(SECURITY_KEY);
+   SecurityParams.Type = SECURITY_TYPE;
+
+   ASSERT_ON_ERROR(sl_WlanProfileAdd(SSID_Remote_Name,Str_Length,bssidEmpty,&SecurityParams,NULL,7,0));
+   ASSERT_ON_ERROR(sl_Stop(0));
+   Status = sl_Start(NULL,NULL,NULL);
+   if (ROLE_P2P != Status)
+   {
+      /* error */
+      Report("sl_WlanProfileAdd start ROLE_P2P failed.\r\n");
+   }
+
+   return 0;
+}
+
+/**
+//The manual disconnect option lets the user disconnect from the remote peer by a host command. This
+//command performs Wi-Fi Direct group.
+**/
+static long Manual_Disconnection(void)
+{
+    _i16 Status;
+
+    /* Disconnect from the AP                                                */
+    Status = Network_IF_DisconnectFromAP();
+
+    CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_CONNECTION);
+    CLR_STATUS_BIT(g_ulStatus, STATUS_BIT_IP_ACQUIRED);
+    if(Status)
+    {
+        /* error */
+        Report("manual disconnect failed.\r\n");
+    }
+
+    return Status;
+}
+
+
+//*****************************************************************************
+//! \brief This function puts the device in its default state. It:
+//!           - Set the mode to STATION
+//!           - Configures connection policy to Auto and AutoSmartConfig
+//!           - Deletes all the stored profiles
+//!           - Enables DHCP
+//!           - Disables Scan policy
+//!           - Sets Tx power to maximum
+//!           - Sets power policy to normal
+//!           - Unregister mDNS services
+//!           - Remove all filters
+//!
+//! \param   none
+//! \return  On success, zero is returned. On error, negative is returned
+//*****************************************************************************
+static long ConfigureSimpleLinkToDefaultState(void)
+{
+    unsigned char ucPower = 0;
+    long lRetVal = -1;
+    long lMode = -1;
+
+    lMode = sl_Start(0, 0, 0);
+    ASSERT_ON_ERROR(lMode);
+
+    // If the device is not in station-mode, try configuring it in station-mode
+    if (ROLE_STA != lMode)
+    {
+        if (ROLE_AP == lMode)
+        {
+            // If the device is in AP mode, we need to wait for this event
+            // before doing anything
+            while(!IS_IP_ACQUIRED(g_ulStatus))
+            {
+            }
+        }
+
+        // Switch to STA role and restart
+        lRetVal = sl_WlanSetMode(ROLE_STA);
+        ASSERT_ON_ERROR(lRetVal);
+
+        lRetVal = sl_Stop(0xFF);
+        ASSERT_ON_ERROR(lRetVal);
+
+        lRetVal = sl_Start(0, 0, 0);
+        ASSERT_ON_ERROR(lRetVal);
+
+        // Check if the device is in station again
+        if (ROLE_STA != lRetVal)
+        {
+            // We don't want to proceed if the device is not coming up in STA-mode
+            return -1;
+        }
+    }
+    // Set connection policy to Auto + SmartConfig
+    //      (Device's default connection policy)
+    lRetVal = sl_WlanPolicySet(SL_WLAN_POLICY_CONNECTION,SL_WLAN_CONNECTION_POLICY(1, 0, 0, 1), NULL, 0);
+    ASSERT_ON_ERROR(lRetVal);
+
+    // Remove all profiles
+    ASSERT_ON_ERROR(sl_WlanProfileDel(SL_WLAN_DEL_ALL_PROFILES));
+
+    // Device in station-mode. Disconnect previous connection if any
+    // The function returns 0 if 'Disconnected done', negative number if already
+    // disconnected Wait for 'disconnection' event if 0 is returned, Ignore
+    // other return-codes
+    ASSERT_ON_ERROR(Manual_Disconnection());
+
+    // Enable DHCP client
+    if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+        ASSERT_ON_ERROR(sl_NetCfgSet(SL_NETCFG_IPV4_STA_ADDR_MODE, SL_NETCFG_ADDR_DHCP,0,NULL));
+    }
+
+    // Disable scan
+    ASSERT_ON_ERROR(Discovering_Remote_WiFi_Direct_Peers(false));
+
+    //Get STA mode Tx power level \n
+    //Number between 0-15, as dB offset from max power (0 indicates MAX power) \n
+    //This options takes <b>_u8</b> as parameter
+    ucPower=(_u8)0;
+    ASSERT_ON_ERROR(sl_WlanSet(SL_WLAN_CFG_GENERAL_PARAM_ID, SL_WLAN_GENERAL_PARAM_OPT_STA_TX_POWER,1,(_u8 *)&ucPower));
+
+    // Unregister mDNS services
+    ASSERT_ON_ERROR(sl_NetAppMDNSUnRegisterService(NULL,0,SL_NETAPP_MDNS_IPV6_IPV4_SERVICE));
+
+    lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+    ASSERT_ON_ERROR(lRetVal);
+
+    InitializeAppVariables();
+
+    return lRetVal; // Success
+}
+
+//*****************************************************************************
+//
+//! Check the device mode and switch to P2P mode
+//! restart the NWP to activate P2P mode
+//!
+//! \param  None
+//!
+//! \return status code - Success:0, Failure:-ve
+//
+//*****************************************************************************/
+static long StartDeviceInP2P(void)
+{
+    /*Reset The state of the machine                                         */
+    Network_IF_ResetMCUStateMachine();
+    ASSERT_ON_ERROR(ConfigureSimpleLinkToDefaultState());
+    ASSERT_ON_ERROR(Set_Mode(ROLE_P2P));
+    return 0;
+}
+
+static long P2PConfiguration(void)
+{
+    long lRetVal = -1;
+
+    ASSERT_ON_ERROR(Configure_Connection_Policy());
+    ASSERT_ON_ERROR(Set_WiFi_Direct_Policy());
+    ASSERT_ON_ERROR(sl_WlanPolicySet(SL_WLAN_POLICY_PM , SL_WLAN_ALWAYS_ON_POLICY, NULL, 0));
+    ASSERT_ON_ERROR(Set_Device_Name());
+    ASSERT_ON_ERROR(Set_Device_Type());
+    ASSERT_ON_ERROR(Set_Listen_and_Operational_Channels());
+
+    // Restart as P2P device
+    lRetVal = sl_Stop(SL_STOP_TIMEOUT);
+
+    lRetVal = sl_Start(NULL,NULL,NULL);
+    if(lRetVal < 0 || lRetVal != ROLE_P2P)
+    {
+        ASSERT_ON_ERROR(-1);
+    }
+
+    return 0;
+}
+
+/**
+//The purpose of profile configuration is to make an automatic Wi-Fi Direct connection after reset, or
+//after disconnection from the remote peer device. The add profile command stores the Wi-Fi Direct
+//remote device parameters in flash as a new profile, along with profile priority. These profiles are similar
+//to the STA mode profiles and have the same automatic connection behavior. The connection is
+//dependent on the profile policy configuration (see the connection policy section). If the Auto policy is
+//on, a Wi-Fi Direct discovery is performed, and if one or more of the found remote devices matches one
+//of the profiles, a negotiation phase is started according to the negotiation initiator policy, method, and
+//intent selected. The chosen profile is the one with the highest-priority profile.
+//NOTE: If a manual connection is sent during a profile connection, the profile connection is stopped,
+//and the manual connection is started.
+**/
+void* p2p_task(void *pvParameters)
+{
+    long Status;
+
+    Status = StartDeviceInP2P();
+    if(Status < 0)
+    {
+        UART_PRINT("Start Device in P2P mode failed. \n\r");
+    }
+
+    Status = P2PConfiguration();
+    if(Status < 0)
+    {
+        UART_PRINT("Setting P2P configuration failed.\n\r");
+    }
+
+    Wifi_Direct_Profiles();
+    WiFi_Direct_Remote_Connection();
+
+    if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+        Report("waiting to ACQUIRED the ip\r\n");
+        while(!(IS_CONNECTED(g_ulStatus)) || !(IS_IP_ACQUIRED(g_ulStatus)))
+        {
+            usleep(100);
+            if(IS_CONNECT_FAILED(g_ulStatus))
+            {
+                // Error, connection is failed
+                Report("p2p connect failed.\r\n");
+                while(1);
+            }
+        }
+        // create udp client
+        CreateUdpClient(&g_udpSocket);
+    }
+    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+    {
+        Report("waiting to LEASED the ip\r\n");
+        while(!(IS_CONNECTED(g_ulStatus)) || !IS_IP_LEASED(g_ulStatus))
+        {
+            usleep(100);
+            if(IS_CONNECT_FAILED(g_ulStatus))
+            {
+                // Error, connection is failed
+                Report("p2p connect failed.\r\n");
+                while(1);
+            }
+        }
+        //Cread UDP Socket and Bind to Local IP Address
+        CreateUdpServer(&g_udpSocket);
+    }
+    if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+    {
+       Audio_Send_Init();
+    }
+    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+    {
+       Audio_Receive_Init();
+    }
+    Report("p2p_task pthread_exit.\r\n");
+    //Delete the Networking Task as Service Discovery is not needed
+    pthread_exit(0);
+
+    return NULL;
+}
+
+void p2p_init(void)
+{
+    pthread_t thread;
+    pthread_attr_t pAttrs;
+    struct sched_param priParam;
+    int retc;
+    int detachState;
+
+    /* Set priority and stack size attributes */
+    pthread_attr_init(&pAttrs);
+    priParam.sched_priority = 1;
+
+    detachState = PTHREAD_CREATE_DETACHED;
+    retc = pthread_attr_setdetachstate(&pAttrs, detachState);
+    if(retc != 0)
+    {
+       /* pthread_attr_setdetachstate() failed */
+       Report("pthread_attr_setdetachstate() failed. \r\n");
+       while(1);
+    }
+
+    pthread_attr_setschedparam(&pAttrs, &priParam);
+
+    retc |= pthread_attr_setstacksize(&pAttrs, 4096);
+    if(retc != 0)
+    {
+       /* pthread_attr_setstacksize() failed */
+       Report("pthread_attr_setstacksize() failed. \r\n");
+       while(1);
+    }
+
+    retc = pthread_create(&thread, &pAttrs, p2p_task, NULL);
+    if(retc != 0)
+    {
+       /* pthread_create() failed */
+       Report("p2p_tast create failed. \r\n");
+       while(1);
+    }
+}
+
+
+
+
