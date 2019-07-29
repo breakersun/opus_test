@@ -85,6 +85,11 @@
 #include "i2s_if.h"
 #include "gpio.h"
 
+#include "opus_multistream.h"
+#include "opus.h"
+#include "opus_private.h"
+#include "test_opus_common.h"
+
 /* Spawn task priority and Task and Thread Stack Size                        */
 #define TASKSTACKSIZE            (2048)
 #define SPAWN_TASK_PRIORITY      (9)
