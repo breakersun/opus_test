@@ -65,6 +65,7 @@
 									<listOptionValue builtIn="false" value="${INHERITED_SYMBOLS}"/>
 									<listOptionValue builtIn="false" value="${COM_TI_SIMPLELINK_CC32XX_SDK_SYMBOLS}"/>
 									<listOptionValue builtIn="false" value="ccs"/>
+									<listOptionValue builtIn="false" value="DISABLE_FLOAT_API"/>
 								</option>
 								<option id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.C_DIALECT.1583888849" name="C Dialect" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.C_DIALECT" value="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compilerID.C_DIALECT.C99" valueType="enumerated"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compiler.inputType__C_SRCS.1257589406" name="C Sources" superClass="com.ti.ccstudio.buildDefinitions.TMS470_18.12.compiler.inputType__C_SRCS"/>
