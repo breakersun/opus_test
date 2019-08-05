@@ -91,7 +91,7 @@
 #include "test_opus_common.h"
 
 /* Spawn task priority and Task and Thread Stack Size                        */
-#define TASKSTACKSIZE            (2048)
+#define TASKSTACKSIZE            (1024)
 #define SPAWN_TASK_PRIORITY      (9)
 #define SLNET_IF_WIFI_PRIO       (5)
 
@@ -114,7 +114,6 @@ opus_int32 test_dec_api(void)
     OpusDecoder *decoder;
     int result;
     int error;
-    int channels = 0;
 
     unsigned char *in = malloc(PACKETSIZE);
     opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
@@ -128,8 +127,7 @@ opus_int32 test_dec_api(void)
     memset(in + 2, 0xff, PACKETSIZE - 3);
     in[PACKETSIZE-1] = 0x0b;
 
-    UART_PRINT("channels : %d\r\n", channels);
-    decoder = opus_decoder_create(8000, channels, &error);
+    decoder = opus_decoder_create(8000, 2, &error);
     result = opus_decode(decoder, in, PACKETSIZE, out, FRAMESIZE, 0);
     opus_decoder_destroy(decoder);
 
@@ -211,9 +209,6 @@ int32_t DisplayAppBanner(char* appName,
     uint16_t ConfigSize = 0;
     uint8_t ConfigOpt = SL_DEVICE_GENERAL_VERSION;
     SlDeviceVersion_t ver = {0};
-
-//    test_dec_api();
-    test_enc_api();
 
     ConfigSize = sizeof(SlDeviceVersion_t);
 
@@ -406,6 +401,9 @@ void* mainThread(void * args)
        g_p2pWorkMode = P2P_GROUP_OWNER_ENABLE;
        Report("P2P_GROUP_OWNER_ENABLE \n\r");
     }
+
+    test_dec_api();
+    test_enc_api();
 
     p2p_init();
 
