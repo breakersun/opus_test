@@ -102,69 +102,13 @@
 #define CHANNELS 2
 #define FRAMESIZE 128
 
+opus_int32 test_dec_api(void);
+
 /* Client ID                                                                 */
 /* If ClientId isn't set, the MAC address of the device will be copied into  */
 /* the ClientID parameter.                                                   */
 char ClientId[13] = {'\0'};
 char lineBreak[] = "\n\r";
-
-
-opus_int32 test_dec_api(void)
-{
-    OpusDecoder *decoder;
-    int result;
-    int error;
-
-    unsigned char *in = malloc(PACKETSIZE);
-    opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
-
-    if (!in || !out) {
-        UART_PRINT("FAIL (out of memory)\n");
-        return -1;
-    }
-    in[0] = 0xff;
-    in[1] = 0x41;
-    memset(in + 2, 0xff, PACKETSIZE - 3);
-    in[PACKETSIZE-1] = 0x0b;
-
-    decoder = opus_decoder_create(8000, 2, &error);
-    result = opus_decode(decoder, in, PACKETSIZE, out, FRAMESIZE, 0);
-    opus_decoder_destroy(decoder);
-
-    free(in);
-    free(out);
-    UART_PRINT("    opus_decode() ................................ OK.\n");
-}
-
-
-opus_int32 test_enc_api(void)
-{
-    opus_uint32 enc_final_range;
-    OpusEncoder *enc;
-    opus_int32 i,j;
-    int c,err,cfgs;
-
-    unsigned char *in = malloc(PACKETSIZE);
-    opus_int16 *out = malloc(FRAMESIZE*CHANNELS*sizeof(*out));
-
-    if (!in || !out) {
-        UART_PRINT("FAIL (out of memory)\n");
-        return -1;
-    }
-
-    in[0] = 0xff;
-    in[1] = 0x41;
-    memset(in + 2, 0xff, PACKETSIZE - 3);
-    in[PACKETSIZE-1] = 0x0b;
-
-    enc = opus_encoder_create(16000, 2, OPUS_APPLICATION_VOIP, NULL);
-    opus_encode(enc, in, PACKETSIZE, out, FRAMESIZE*CHANNELS*sizeof(*out));
-    opus_encoder_destroy(enc);
-    free(in);
-    free(out);
-
-    UART_PRINT("    opus_encode() ................................ OK.\n");
-}
 
 
 //*****************************************************************************
@@ -403,7 +347,7 @@ void* mainThread(void * args)
     }
 
     test_dec_api();
-    test_enc_api();
+//    test_enc_api();
 
     p2p_init();
 
