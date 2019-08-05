@@ -103,6 +103,7 @@
 #define FRAMESIZE 128
 
 opus_int32 test_dec_api(void);
+opus_int32 test_enc_api(void);
 
 /* Client ID                                                                 */
 /* If ClientId isn't set, the MAC address of the device will be copied into  */
@@ -346,8 +347,8 @@ void* mainThread(void * args)
        Report("P2P_GROUP_OWNER_ENABLE \n\r");
     }
 
-    test_dec_api();
-//    test_enc_api();
+//    test_dec_api();
+    test_enc_api();
 
     p2p_init();
 

@@ -114,6 +114,7 @@ opus_uint32 *null_uint_ptr = (opus_uint32 *)NULL;
 
 static const opus_int32 opus_rates[5] = {48000,24000,16000,12000,8000};
 
+unsigned char mapping[256];
 unsigned char packet[1276];
 #ifndef DISABLE_FLOAT_API
 float fbuf[960*2];
@@ -1099,11 +1100,11 @@ opus_int32 test_enc_api(void)
    opus_uint32 enc_final_range;
    OpusEncoder *enc;
    opus_int32 i,j;
-   unsigned char packet[1276];
-#ifndef DISABLE_FLOAT_API
-   float fbuf[960*2];
-#endif
-   short sbuf[960*2];
+//   unsigned char packet[1276];
+//#ifndef DISABLE_FLOAT_API
+//   float fbuf[960*2];
+//#endif
+//   short sbuf[960*2];
    int c,err,cfgs;
 
    cfgs=0;
