@@ -281,6 +281,7 @@ void* mainThread(void * args)
 
     SPI_init();
     GPIO_init();
+    I2s_Init();
 
     /*Configure the UART*/
     tUartHndl = InitTerm();

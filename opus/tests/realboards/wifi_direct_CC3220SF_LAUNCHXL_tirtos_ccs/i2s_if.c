@@ -22,7 +22,7 @@
 #define THREADSTACKSIZE   2048
 
 /* The higher the sampling frequency, the less time we have to process the data, but the higher the sound quality. */
-#define SAMPLE_RATE                     44100   /* Supported values: 8kHz, 16kHz, 32kHz and 44.1kHz */
+#define SAMPLE_RATE                     16000//44100   /* Supported values: 8kHz, 16kHz, 32kHz and 44.1kHz */
 #define INPUT_OPTION                    AudioCodec_MIC_LINE_IN
 #define OUTPUT_OPTION                   AudioCodec_SPEAKER_HP
 
@@ -207,7 +207,7 @@ void I2s_Init(void)
      * Start I2S streaming
      */
     I2S_startClocks(i2sHandle);
-    I2S_startRead(i2sHandle);
-    I2S_startWrite(i2sHandle);
+//    I2S_startRead(i2sHandle);
+//    I2S_startWrite(i2sHandle);
 }
 

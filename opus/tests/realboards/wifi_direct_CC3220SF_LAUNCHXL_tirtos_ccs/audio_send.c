@@ -30,11 +30,11 @@ opus_int32 test_enc_api(void);
 
 static void* Audio_Send_Thread( void *pvParameters )
 {
-    I2s_Init();
     long retc = -1;
 
 //    test_dec_api();
 //    test_enc_api();
+
 
 //    int err = OPUS_OK;
 //    OpusEncoder *enc;
@@ -44,6 +44,11 @@ static void* Audio_Send_Thread( void *pvParameters )
 //        UART_PRINT("opus_encoder_create fail\n");
 //    }
 //    UART_PRINT("opus_encoder_create success\n");
+
+    /* note : fire I2S read/write process immediately after bring up I2S module */
+//    I2s_Init();
+    I2S_startRead(i2sHandle);
+    I2S_startWrite(i2sHandle);
 
     I2S_Transaction* transactionToTreat;
     while(1)
