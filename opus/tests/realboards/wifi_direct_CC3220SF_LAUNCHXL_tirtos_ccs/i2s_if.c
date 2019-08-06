@@ -46,7 +46,7 @@ I2S_Transaction i2sTransaction[NUMBUFS];
 I2S_Transaction *i2sTransactionList[NUMBUFS];
 
 I2S_Handle i2sHandle;
-bool g_playBack = false;//true;
+bool g_playBack = true;
 
 static void errCallbackFxn(I2S_Handle handle, int_fast16_t status, I2S_Transaction *transactionPtr) {
     /*

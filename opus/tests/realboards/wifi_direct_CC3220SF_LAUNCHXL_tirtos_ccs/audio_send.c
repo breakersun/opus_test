@@ -20,22 +20,32 @@
 #include "List.h"
 #include <ti/drivers/I2S.h>
 
+#include "opus_multistream.h"
+#include "opus.h"
+#include "opus_private.h"
+#include "test_opus_common.h"
+
+opus_int32 test_dec_api(void);
+opus_int32 test_enc_api(void);
 
 static void* Audio_Send_Thread( void *pvParameters )
 {
     long retc = -1;
 
+    test_dec_api();
+    test_enc_api();
+
     I2S_Transaction* transactionToTreat;
     while(1)
     {
-        retc = sl_SendTo(g_udpSocket.iSockDesc,
-             (char*)("hello world!"),
-             14,
-             0,
-             (struct SlSockAddr_t*)&(g_udpSocket.Client),
-             sizeof(g_udpSocket.Client));
-        sleep(1);
-        continue;
+//        retc = sl_SendTo(g_udpSocket.iSockDesc,
+//             (char*)("hello world!"),
+//             14,
+//             0,
+//             (struct SlSockAddr_t*)&(g_udpSocket.Client),
+//             sizeof(g_udpSocket.Client));
+//        sleep(1);
+//        continue;
 
         /* Wait for transaction ready for treatment */
         retc = sem_wait(&semDataReadyForTreatment);
@@ -98,7 +108,7 @@ void Audio_Send_Init(void)
 
     pthread_attr_setschedparam(&pAttrs, &priParam);
 
-    retc |= pthread_attr_setstacksize(&pAttrs, 2048);
+    retc |= pthread_attr_setstacksize(&pAttrs, 1024 * 10);
     if(retc != 0)
     {
        /* pthread_attr_setstacksize() failed */

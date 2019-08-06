@@ -752,30 +752,30 @@ void* p2p_task(void *pvParameters)
         // create udp client
         CreateUdpClient(&g_udpSocket);
     }
-    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
-    {
-        Report("waiting to LEASED the ip\r\n");
-        while(!(IS_CONNECTED(g_ulStatus)) || !IS_IP_LEASED(g_ulStatus))
-        {
-            usleep(100);
-            if(IS_CONNECT_FAILED(g_ulStatus))
-            {
-                // Error, connection is failed
-                Report("p2p connect failed.\r\n");
-                while(1);
-            }
-        }
-        //Cread UDP Socket and Bind to Local IP Address
-        CreateUdpServer(&g_udpSocket);
-    }
-    if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
+//    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+//    {
+//        Report("waiting to LEASED the ip\r\n");
+//        while(!(IS_CONNECTED(g_ulStatus)) || !IS_IP_LEASED(g_ulStatus))
+//        {
+//            usleep(100);
+//            if(IS_CONNECT_FAILED(g_ulStatus))
+//            {
+//                // Error, connection is failed
+//                Report("p2p connect failed.\r\n");
+//                while(1);
+//            }
+//        }
+//        //Cread UDP Socket and Bind to Local IP Address
+//        CreateUdpServer(&g_udpSocket);
+//    }
+//    if(P2P_GROUP_CLIENT_ENABLE==g_p2pWorkMode)
     {
        Audio_Send_Init();
     }
-    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
-    {
-       Audio_Receive_Init();
-    }
+//    else if(P2P_GROUP_OWNER_ENABLE==g_p2pWorkMode)
+//    {
+//       Audio_Receive_Init();
+//    }
     Report("p2p_task pthread_exit.\r\n");
     //Delete the Networking Task as Service Discovery is not needed
     pthread_exit(0);

@@ -85,11 +85,6 @@
 #include "i2s_if.h"
 #include "gpio.h"
 
-#include "opus_multistream.h"
-#include "opus.h"
-#include "opus_private.h"
-#include "test_opus_common.h"
-
 /* Spawn task priority and Task and Thread Stack Size                        */
 #define TASKSTACKSIZE            (1024)
 #define SPAWN_TASK_PRIORITY      (9)
@@ -97,13 +92,6 @@
 
 #define APPLICATION_VERSION      "1.1.1"
 #define APPLICATION_NAME         "WIFI DIRECT"
-
-#define PACKETSIZE 512
-#define CHANNELS 2
-#define FRAMESIZE 128
-
-opus_int32 test_dec_api(void);
-opus_int32 test_enc_api(void);
 
 /* Client ID                                                                 */
 /* If ClientId isn't set, the MAC address of the device will be copied into  */
@@ -346,9 +334,6 @@ void* mainThread(void * args)
        g_p2pWorkMode = P2P_GROUP_OWNER_ENABLE;
        Report("P2P_GROUP_OWNER_ENABLE \n\r");
     }
-
-    test_dec_api();
-    test_enc_api();
 
     p2p_init();
 
