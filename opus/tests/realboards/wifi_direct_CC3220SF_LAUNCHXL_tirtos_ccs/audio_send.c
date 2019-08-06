@@ -28,25 +28,27 @@
 opus_int32 test_dec_api(void);
 opus_int32 test_enc_api(void);
 
+
+
+static unsigned char packet[1276];
+static short sbuf[960 * 2];
+
 static void* Audio_Send_Thread( void *pvParameters )
 {
     long retc = -1;
+    opus_int32 ret = 0;
 
 //    test_dec_api();
 //    test_enc_api();
 
-
-//    int err = OPUS_OK;
-//    OpusEncoder *enc;
-//    enc = opus_encoder_create(48000, 2, OPUS_APPLICATION_VOIP, &err);
-//    if (err != OPUS_OK || enc == NULL)
-//    {
-//        UART_PRINT("opus_encoder_create fail\n");
-//    }
-//    UART_PRINT("opus_encoder_create success\n");
+    int err = OPUS_OK;
+    OpusEncoder *enc;
+    enc = opus_encoder_create(16000, 2, OPUS_APPLICATION_VOIP, &err);
+    if (err != OPUS_OK || enc == NULL)
+        UART_PRINT("opus_encoder_create fail\n");
+    UART_PRINT("opus_encoder_create OK\n");
 
     /* note : fire I2S read/write process immediately after bring up I2S module */
-//    I2s_Init();
     I2S_startRead(i2sHandle);
     I2S_startWrite(i2sHandle);
 
@@ -60,6 +62,22 @@ static void* Audio_Send_Thread( void *pvParameters )
         }
 
         transactionToTreat = (I2S_Transaction*) List_head(&treatmentList);
+
+//        memcpy();
+        ret = opus_encode(enc,
+                          (opus_int16 *)(transactionToTreat->bufPtr),
+                          transactionToTreat->bufSize / (2 * sizeof(opus_int16)),
+                          packet,
+                          sizeof(packet));
+//        UART_PRINT("transactionToTreat->bufSize : %d\n",
+//                   transactionToTreat->bufSize);
+
+//        ret = opus_encode(enc, sbuf, 960, packet, sizeof(packet));
+
+        if (ret < 1 || ret > (opus_int32)sizeof(packet)) {
+            UART_PRINT("opus_encode fail 0x%02x\n", ret);
+            while(1);
+        }
 
         if(transactionToTreat != NULL)
         {

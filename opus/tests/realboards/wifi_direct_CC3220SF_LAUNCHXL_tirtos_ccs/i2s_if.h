@@ -7,7 +7,7 @@
 #include <ti/drivers/I2S.h>
 
 //sample rate:16KHz BUFSIZE:128;sample rate:48KHz BUFSIZE:384;
-#define BUFSIZE         (512)     /* I2S buffer size */
+#define BUFSIZE         (640)     /* I2S buffer size */
 
 /* Semaphore used to indicate that data must be processed */
 extern sem_t semDataReadyForTreatment;
