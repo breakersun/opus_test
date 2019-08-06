@@ -281,13 +281,12 @@ void* mainThread(void * args)
 
     SPI_init();
     GPIO_init();
-    //I2s_Init();
 
     /*Configure the UART*/
     tUartHndl = InitTerm();
     /*remove uart receive from LPDS dependency*/
     UART_control(tUartHndl, UART_CMD_RXDISABLE, NULL);
-
+#if 0
     /*Create the sl_Task*/
     pthread_attr_init(&pAttrs_spawn);
     priParam.sched_priority = SPAWN_TASK_PRIORITY;
@@ -323,7 +322,7 @@ void* mainThread(void * args)
         UART_PRINT("\n sl_Stop failed\n");
         ASSERT_ON_ERROR(retc);
     }
-
+#endif
     if(1 == GPIO_read(CC3220SF_LAUNCHXL_GPIO_SW2))
     {
        g_p2pWorkMode = P2P_GROUP_CLIENT_ENABLE;
@@ -334,8 +333,8 @@ void* mainThread(void * args)
        g_p2pWorkMode = P2P_GROUP_OWNER_ENABLE;
        Report("P2P_GROUP_OWNER_ENABLE \n\r");
     }
-
-    p2p_init();
+    Audio_Send_Init();
+   // p2p_init();
 
     pthread_exit(0);
 

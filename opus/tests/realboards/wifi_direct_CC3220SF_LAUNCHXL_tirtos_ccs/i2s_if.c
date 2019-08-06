@@ -200,9 +200,6 @@ void I2s_Init(void)
         List_put(&i2sWriteList, (List_Elem*)i2sTransactionList[k]);
     }
 
-//    List_tail(&i2sList)->next = List_head(&i2sList); /* I2S buffers are queued in a ring-list */
-//    List_head(&i2sList)->prev = List_tail(&i2sList);
-
     I2S_setReadQueueHead(i2sHandle,  (I2S_Transaction*) List_head(&i2sReadList));
     I2S_setWriteQueueHead(i2sHandle, (I2S_Transaction*) List_head(&i2sWriteList));
 

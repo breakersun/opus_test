@@ -30,27 +30,27 @@ opus_int32 test_enc_api(void);
 
 static void* Audio_Send_Thread( void *pvParameters )
 {
+    I2s_Init();
     long retc = -1;
 
-    test_dec_api();
-    test_enc_api();
+//    test_dec_api();
+//    test_enc_api();
+
+//    int err = OPUS_OK;
+//    OpusEncoder *enc;
+//    enc = opus_encoder_create(48000, 2, OPUS_APPLICATION_VOIP, &err);
+//    if (err != OPUS_OK || enc == NULL)
+//    {
+//        UART_PRINT("opus_encoder_create fail\n");
+//    }
+//    UART_PRINT("opus_encoder_create success\n");
 
     I2S_Transaction* transactionToTreat;
     while(1)
     {
-//        retc = sl_SendTo(g_udpSocket.iSockDesc,
-//             (char*)("hello world!"),
-//             14,
-//             0,
-//             (struct SlSockAddr_t*)&(g_udpSocket.Client),
-//             sizeof(g_udpSocket.Client));
-//        sleep(1);
-//        continue;
-
         /* Wait for transaction ready for treatment */
         retc = sem_wait(&semDataReadyForTreatment);
         if (retc == -1) {
-            Report("Wait for transaction ready for treatment failed.\r\n");
             while (1);
         }
 
@@ -95,7 +95,7 @@ void Audio_Send_Init(void)
 
     /* Set priority and stack size attributes */
     pthread_attr_init(&pAttrs);
-    priParam.sched_priority = 1;
+    priParam.sched_priority = 8;
 
     detachState = PTHREAD_CREATE_DETACHED;
     retc = pthread_attr_setdetachstate(&pAttrs, detachState);
