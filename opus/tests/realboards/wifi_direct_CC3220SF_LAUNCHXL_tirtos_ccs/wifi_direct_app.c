@@ -347,7 +347,7 @@ void* mainThread(void * args)
        Report("P2P_GROUP_OWNER_ENABLE \n\r");
     }
 
-//    test_dec_api();
+    test_dec_api();
     test_enc_api();
 
     p2p_init();
